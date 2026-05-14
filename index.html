@@ -1,21 +1,23 @@
+```html
 <!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Comparador de Cartas Magic</title>
+  <title>Comparador Magic</title>
 
   <style>
     :root{
+      --bg:#f6f7fb;
+      --card:#fff;
       --text:#172033;
       --muted:#6b7280;
       --primary:#5b5ef7;
-      --primary-dark:#4346d8;
       --green:#16a34a;
       --green-bg:#dcfce7;
-      --yellow-bg:#fef3c7;
       --yellow:#92400e;
-      --red:#dc2626;
+      --yellow-bg:#fef3c7;
+      --red:#991b1b;
       --red-bg:#fee2e2;
       --border:#e5e7eb;
       --shadow:0 20px 45px rgba(15,23,42,.08);
@@ -31,14 +33,14 @@
     }
 
     header{
-      padding:42px 20px 24px;
+      padding:38px 20px 22px;
       text-align:center;
     }
 
     header h1{
       margin:0;
       font-size:clamp(28px,5vw,48px);
-      letter-spacing:-1.5px;
+      letter-spacing:-1.4px;
     }
 
     header p{
@@ -98,7 +100,7 @@
     }
 
     textarea{
-      min-height:300px;
+      min-height:310px;
       resize:vertical;
       line-height:1.45;
     }
@@ -147,14 +149,9 @@
       color:#fff;
     }
 
-    .btn-primary:hover{
-      background:var(--primary-dark);
-      transform:translateY(-1px);
-    }
-
     .btn-light{
       background:#eef2ff;
-      color:var(--primary-dark);
+      color:#3730a3;
     }
 
     .btn-danger{
@@ -205,11 +202,11 @@
       margin-bottom:16px;
     }
 
-    .toolbar input{max-width:340px}
+    .toolbar input{max-width:360px}
 
     .cards-grid{
       display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      grid-template-columns:repeat(auto-fill,minmax(285px,1fr));
       gap:16px;
     }
 
@@ -219,11 +216,6 @@
       border:1px solid var(--border);
       background:#fff;
       transition:.2s;
-    }
-
-    .magic-card:hover{
-      transform:translateY(-3px);
-      box-shadow:0 18px 30px rgba(15,23,42,.08);
     }
 
     .magic-card.green{
@@ -293,7 +285,7 @@
 
     .empty{
       text-align:center;
-      padding:50px 20px;
+      padding:48px 20px;
       color:var(--muted);
       grid-column:1/-1;
     }
@@ -311,8 +303,8 @@
 <header>
   <h1>Comparador de Cartas Magic</h1>
   <p>
-    Cole ou importe sua lista e a lista do vendedor. Ao clicar em
-    <strong>Mostrar disponíveis</strong>, aparecem somente as cartas que você quer e o vendedor tem.
+    Cole sua lista e a tabela do vendedor. O botão <strong>Mostrar disponíveis</strong>
+    exibe somente as cartas que estão na sua lista e também existem na lista do vendedor.
   </p>
 </header>
 
@@ -320,18 +312,19 @@
 
   <section class="panel">
     <div class="alert">
-      Aceita texto, TXT, CSV, HTML e CSV com colunas em qualquer ordem.
-      O vendedor pode ter colunas como <strong>Nome</strong>, <strong>Carta</strong>,
-      <strong>Quantidade</strong>, <strong>Coleção</strong>, <strong>Edição</strong> ou <strong>Set</strong>.
+      O sistema aceita TXT, CSV, HTML, texto copiado de tabela e listas no formato
+      <strong>1 Nome da Carta</strong>. Para CSV do vendedor, detecta automaticamente colunas como
+      <strong>Nome</strong>, <strong>Carta</strong>, <strong>Quantidade</strong>,
+      <strong>Coleção</strong>, <strong>Edição</strong>, <strong>Set</strong>.
     </div>
 
     <div class="grid">
       <div>
-        <label>Sua lista</label>
+        <label>Sua lista de cartas</label>
         <textarea id="wantedText" placeholder="Deck
-1 Sol Ring
-1 Rhystic Study
-1 Cyclonic Rift"></textarea>
+1 Desolate Mire
+1 Choked Estuary
+1 Arcane Signet"></textarea>
 
         <div class="file-box">
           <label>Importar sua lista</label>
@@ -341,15 +334,13 @@
       </div>
 
       <div>
-        <label>Lista do vendedor</label>
-        <textarea id="sellerText" placeholder="Quantidade,Nome,Coleção
-2,Sol Ring,Commander Legends
-1,Rhystic Study,Jumpstart"></textarea>
+        <label>Lista / tabela do vendedor</label>
+        <textarea id="sellerText" placeholder="Cole aqui a tabela do vendedor ou importe CSV/TXT/HTML."></textarea>
 
         <div class="file-box">
           <label>Importar lista do vendedor</label>
           <input type="file" id="sellerFile" accept=".txt,.csv,.html,.htm" onchange="importFile('sellerFile','sellerText')">
-          <div class="hint">Se tiver coleção/edição no CSV, ela aparecerá no resultado.</div>
+          <div class="hint">Pode ter colunas extras. O sistema tenta identificar nome, quantidade e coleção.</div>
         </div>
       </div>
     </div>
@@ -370,12 +361,12 @@
     <div class="stats">
       <div class="stat">
         <strong id="wantedCount">0</strong>
-        <span>Cartas na sua lista</span>
+        <span>Cartas únicas na sua lista</span>
       </div>
 
       <div class="stat">
         <strong id="sellerCount">0</strong>
-        <span>Cartas do vendedor</span>
+        <span>Cartas únicas do vendedor</span>
       </div>
 
       <div class="stat">
@@ -396,7 +387,6 @@
 
       <select id="filterSelect" onchange="renderCards()">
         <option value="available">Somente disponíveis</option>
-        <option value="partial">Disponíveis + parciais</option>
         <option value="missing">Somente faltantes</option>
         <option value="all">Todas</option>
       </select>
@@ -412,27 +402,79 @@
 <script>
   let comparisonData = [];
 
-  function normalizeCardName(name){
-    return String(name || "")
+  const HEADER_NAME = [
+    "nome","name","card","carta","cartas","cardname","nomedacarta",
+    "nomecarta","produto","item"
+  ];
+
+  const HEADER_QTY = [
+    "quantidade","qtd","qtde","qty","count","quantity","estoque","unidades"
+  ];
+
+  const HEADER_COLLECTION = [
+    "colecao","coleção","collection","edicao","edição","edition","set",
+    "expansao","expansão","expansion","serie","série","series"
+  ];
+
+  function normalizeText(value){
+    return String(value || "")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g,"")
       .replace(/[’‘`´]/g,"'")
       .replace(/[“”]/g,'"')
-      .replace(/\s*\/\/\s*/g," // ")
       .replace(/\s+/g," ")
-      .replace(/[^\p{L}\p{N}\s,'"!?:/&.-]/gu,"")
       .trim();
   }
 
-  function looseKey(name){
-    return normalizeCardName(name)
-      .replace(/[^a-z0-9]/g,"");
+  function normalizeHeader(value){
+    return normalizeText(value).replace(/[^a-z0-9]/g,"");
+  }
+
+  function normalizeCardName(value){
+    return normalizeText(value)
+      .replace(/\s*\/\/\s*/g," // ")
+      .replace(/[^\p{L}\p{N}\s,'"!?:/&.-]/gu,"")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  function looseKey(value){
+    return normalizeCardName(value).replace(/[^a-z0-9]/g,"");
+  }
+
+  function escapeHTML(value){
+    return String(value || "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function isNumeric(value){
+    return /^\s*\d+([,.]\d+)?\s*$/.test(String(value || ""));
+  }
+
+  function parseQuantity(value){
+    const number = Number(String(value || "").replace(",",".").replace(/[^\d.]/g,""));
+    return number > 0 ? number : 1;
   }
 
   function stripHTML(html){
     const doc = new DOMParser().parseFromString(html,"text/html");
     doc.querySelectorAll("script,style,noscript,svg,iframe").forEach(el => el.remove());
+
+    const tableRows = [...doc.querySelectorAll("tr")].map(row => {
+      return [...row.querySelectorAll("th,td")]
+        .map(cell => cell.innerText.trim())
+        .filter(Boolean)
+        .join("\t");
+    }).filter(Boolean);
+
+    if(tableRows.length){
+      return tableRows.join("\n");
+    }
 
     return doc.body.innerText
       .replace(/\t/g," ")
@@ -442,15 +484,17 @@
       .join("\n");
   }
 
-  function detectDelimiter(line){
-    const delimiters = [",",";","\t"];
+  function detectDelimiter(lines){
+    const sample = lines.slice(0, 8).join("\n");
+    const delimiters = ["\t",";",","];
+
     let best = ",";
-    let max = 0;
+    let bestScore = 0;
 
     delimiters.forEach(delimiter => {
-      const count = splitDelimitedLine(line, delimiter).length;
-      if(count > max){
-        max = count;
+      const score = sample.split(delimiter).length;
+      if(score > bestScore){
+        bestScore = score;
         best = delimiter;
       }
     });
@@ -484,26 +528,8 @@
     return result;
   }
 
-  function normalizeHeader(text){
-    return String(text || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g,"")
-      .replace(/[^a-z0-9]/g,"")
-      .trim();
-  }
-
-  function isNumeric(value){
-    return /^\d+([,.]\d+)?$/.test(String(value || "").trim());
-  }
-
-  function parseQuantity(value){
-    const number = Number(String(value || "").replace(",",".").replace(/[^\d.]/g,""));
-    return number > 0 ? number : 1;
-  }
-
-  function cleanName(name){
-    return String(name || "")
+  function cleanCardName(value){
+    return String(value || "")
       .replace(/\t/g," ")
       .replace(/\s+/g," ")
       .replace(/^\s*\d+\s*x?\s+/i,"")
@@ -517,12 +543,12 @@
       .trim();
   }
 
-  function isIgnoredLine(line){
-    const lower = String(line || "").toLowerCase().trim();
+  function isIgnoredLine(value){
+    const line = normalizeText(value);
 
-    if(!lower) return true;
-    if(/^https?:\/\//i.test(lower)) return true;
-    if(/^r\$/i.test(lower)) return true;
+    if(!line) return true;
+    if(/^https?:\/\//i.test(line)) return true;
+    if(/^r\$/i.test(line)) return true;
 
     const ignored = [
       "deck","sideboard","commander","maybeboard","mainboard",
@@ -530,29 +556,29 @@
       "quantidade","qtd","qty","count","quantity",
       "colecao","coleção","collection","edicao","edição","edition","set",
       "preco","preço","valor","idioma","raridade","condicao","condição",
-      "ligamagic","total","resultado"
+      "ligamagic","total","resultado","acoes","ações"
     ];
 
-    return ignored.includes(lower);
+    return ignored.includes(line);
   }
 
   function addCardToMap(map, name, quantity = 1, collection = ""){
-    const finalName = cleanName(name);
-    const finalCollection = String(collection || "").trim();
+    const cardName = cleanCardName(name);
+    const cardCollection = String(collection || "").trim();
 
-    if(isIgnoredLine(finalName)) return;
+    if(isIgnoredLine(cardName)) return;
 
-    const key = normalizeCardName(finalName);
-    const loose = looseKey(finalName);
+    const key = normalizeCardName(cardName);
+    const loose = looseKey(cardName);
 
-    if(!key || key.length < 2 || !loose) return;
+    if(!key || !loose || key.length < 2) return;
 
     if(!map.has(key)){
-      map.set(key,{
-        name: finalName,
+      map.set(key, {
+        name: cardName,
         quantity: 0,
         collections: [],
-        aliases: new Set([loose])
+        loose
       });
     }
 
@@ -560,16 +586,17 @@
     const qty = parseQuantity(quantity);
 
     card.quantity += qty;
-    card.aliases.add(loose);
 
-    if(finalCollection){
-      const existing = card.collections.find(c => normalizeCardName(c.name) === normalizeCardName(finalCollection));
+    if(cardCollection){
+      const existing = card.collections.find(
+        item => normalizeCardName(item.name) === normalizeCardName(cardCollection)
+      );
 
       if(existing){
         existing.quantity += qty;
       }else{
         card.collections.push({
-          name: finalCollection,
+          name: cardCollection,
           quantity: qty
         });
       }
@@ -577,7 +604,7 @@
   }
 
   function parseDeckLine(line){
-    let clean = String(line || "").replace(/\t/g," ").replace(/\s+/g," ").trim();
+    let text = String(line || "").replace(/\t/g," ").replace(/\s+/g," ").trim();
     let quantity = 1;
 
     const patterns = [
@@ -588,90 +615,162 @@
     ];
 
     for(const pattern of patterns){
-      const match = clean.match(pattern);
+      const match = text.match(pattern);
 
       if(match){
         if(isNumeric(match[1])){
           quantity = parseQuantity(match[1]);
-          clean = match[2];
+          text = match[2];
         }else{
-          clean = match[1];
+          text = match[1];
           quantity = parseQuantity(match[2]);
         }
+
         break;
       }
     }
 
     return {
-      name: cleanName(clean),
+      name: cleanCardName(text),
       quantity
     };
   }
 
-  function looksLikeCSV(text){
-    const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  function hasDelimitedStructure(text){
+    const lines = String(text || "").split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+
     if(lines.length < 2) return false;
 
-    const first = lines[0];
-    return first.includes(",") || first.includes(";") || first.includes("\t");
+    return lines.some(line => line.includes("\t") || line.includes(";") || line.includes(","));
   }
 
-  function parseCSV(text){
-    const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  function findHeaderIndex(headers, options){
+    return headers.findIndex(header => options.map(normalizeHeader).includes(header));
+  }
+
+  function guessNameIndex(rows){
+    let bestIndex = -1;
+    let bestScore = -999;
+
+    const maxColumns = Math.max(...rows.map(row => row.length));
+
+    for(let col = 0; col < maxColumns; col++){
+      let score = 0;
+
+      rows.forEach(row => {
+        const value = row[col] || "";
+        const normalized = normalizeText(value);
+
+        if(!value) score -= 2;
+        else if(isNumeric(value)) score -= 8;
+        else if(/^r\$/i.test(value)) score -= 8;
+        else if(normalized.length >= 3) score += 3;
+        else score -= 1;
+
+        if(/[a-zA-Z]/.test(value)) score += 3;
+        if(value.includes("R$")) score -= 10;
+      });
+
+      if(score > bestScore){
+        bestScore = score;
+        bestIndex = col;
+      }
+    }
+
+    return bestIndex;
+  }
+
+  function guessQtyIndex(rows){
+    const maxColumns = Math.max(...rows.map(row => row.length));
+
+    for(let col = 0; col < maxColumns; col++){
+      const numericCount = rows.filter(row => isNumeric(row[col])).length;
+
+      if(numericCount >= Math.max(1, Math.floor(rows.length * 0.5))){
+        return col;
+      }
+    }
+
+    return -1;
+  }
+
+  function guessCollectionIndex(headers, rows, nameIndex, qtyIndex){
+    const explicit = findHeaderIndex(headers, HEADER_COLLECTION);
+
+    if(explicit >= 0) return explicit;
+
+    const maxColumns = Math.max(...rows.map(row => row.length));
+
+    for(let col = 0; col < maxColumns; col++){
+      if(col !== nameIndex && col !== qtyIndex){
+        const useful = rows.filter(row => {
+          const value = row[col] || "";
+          return value && !isNumeric(value) && !value.includes("R$");
+        }).length;
+
+        if(useful >= Math.max(1, Math.floor(rows.length * 0.4))){
+          return col;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  function parseDelimited(text){
+    const lines = String(text || "")
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean);
+
     const map = new Map();
 
     if(!lines.length) return map;
 
-    const delimiter = detectDelimiter(lines[0]);
-    const firstCells = splitDelimitedLine(lines[0], delimiter);
-    const headers = firstCells.map(normalizeHeader);
+    const delimiter = detectDelimiter(lines);
+    const rawRows = lines.map(line => splitDelimitedLine(line, delimiter));
 
-    const headerNames = {
-      name: ["nome","name","card","carta","cardname","nomedacarta","cartanome"],
-      quantity: ["quantidade","qtd","qty","count","quantity","qtde"],
-      collection: ["colecao","collection","edicao","edition","set","expansao","expansion","serie","series"]
-    };
+    const headers = rawRows[0].map(normalizeHeader);
 
-    let nameIndex = headers.findIndex(h => headerNames.name.includes(h));
-    let qtyIndex = headers.findIndex(h => headerNames.quantity.includes(h));
-    let collectionIndex = headers.findIndex(h => headerNames.collection.includes(h));
+    let nameIndex = findHeaderIndex(headers, HEADER_NAME);
+    let qtyIndex = findHeaderIndex(headers, HEADER_QTY);
+    let collectionIndex = findHeaderIndex(headers, HEADER_COLLECTION);
 
     const hasHeader = nameIndex >= 0 || qtyIndex >= 0 || collectionIndex >= 0;
-    const start = hasHeader ? 1 : 0;
 
-    for(let i = start; i < lines.length; i++){
-      const cells = splitDelimitedLine(lines[i], delimiter).map(cell => cell.replace(/^"|"$/g,"").trim());
+    const dataRows = hasHeader ? rawRows.slice(1) : rawRows;
 
-      let name = "";
-      let quantity = 1;
-      let collection = "";
+    if(nameIndex < 0) nameIndex = guessNameIndex(dataRows);
+    if(qtyIndex < 0) qtyIndex = guessQtyIndex(dataRows);
+    if(collectionIndex < 0) collectionIndex = guessCollectionIndex(headers, dataRows, nameIndex, qtyIndex);
 
-      if(hasHeader){
-        name = nameIndex >= 0 ? cells[nameIndex] : "";
-        quantity = qtyIndex >= 0 ? parseQuantity(cells[qtyIndex]) : 1;
-        collection = collectionIndex >= 0 ? cells[collectionIndex] : "";
+    dataRows.forEach(cells => {
+      let name = nameIndex >= 0 ? cells[nameIndex] : "";
+      let quantity = qtyIndex >= 0 ? parseQuantity(cells[qtyIndex]) : 1;
+      let collection = collectionIndex >= 0 ? cells[collectionIndex] : "";
 
-        if(!name){
-          const fallback = cells.find(cell => cell && !isNumeric(cell) && !isIgnoredLine(cell));
-          name = fallback || "";
-        }
-      }else{
-        const numericIndex = cells.findIndex(isNumeric);
-        const possibleNameIndex = cells.findIndex((cell, index) => index !== numericIndex && cell && !isIgnoredLine(cell));
-
-        if(numericIndex >= 0 && possibleNameIndex >= 0){
-          quantity = parseQuantity(cells[numericIndex]);
-          name = cells[possibleNameIndex];
-          collection = cells.find((cell, index) => index !== numericIndex && index !== possibleNameIndex && cell) || "";
-        }else{
-          const parsed = parseDeckLine(cells.join(" "));
-          name = parsed.name;
-          quantity = parsed.quantity;
-        }
+      if(!name){
+        const fallback = cells.find(cell => cell && !isNumeric(cell) && !isIgnoredLine(cell) && !cell.includes("R$"));
+        name = fallback || "";
       }
 
       addCardToMap(map, name, quantity, collection);
-    }
+    });
+
+    return map;
+  }
+
+  function parseTextList(text){
+    const map = new Map();
+
+    String(text || "")
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => !isIgnoredLine(line))
+      .forEach(line => {
+        const parsed = parseDeckLine(line);
+        addCardToMap(map, parsed.name, parsed.quantity, "");
+      });
 
     return map;
   }
@@ -683,38 +782,22 @@
       source = stripHTML(source);
     }
 
-    if(looksLikeCSV(source)){
-      const csvMap = parseCSV(source);
-      if(csvMap.size) return csvMap;
+    if(hasDelimitedStructure(source)){
+      const parsed = parseDelimited(source);
+      if(parsed.size > 0) return parsed;
     }
 
-    const map = new Map();
-
-    source
-      .split(/\r?\n|;/)
-      .map(line => line.trim())
-      .filter(line => !isIgnoredLine(line))
-      .forEach(line => {
-        const parsed = parseDeckLine(line);
-        addCardToMap(map, parsed.name, parsed.quantity, "");
-      });
-
-    return map;
+    return parseTextList(source);
   }
 
-  function findSellerCard(sellerMap, wantedKey, wantedName){
-    if(sellerMap.has(wantedKey)) return sellerMap.get(wantedKey);
+  function findSellerCard(sellerMap, wantedName){
+    const exactKey = normalizeCardName(wantedName);
+    const looseWanted = looseKey(wantedName);
 
-    const wantedLoose = looseKey(wantedName);
+    if(sellerMap.has(exactKey)) return sellerMap.get(exactKey);
 
-    for(const sellerCard of sellerMap.values()){
-      if(sellerCard.aliases && sellerCard.aliases.has(wantedLoose)){
-        return sellerCard;
-      }
-
-      if(looseKey(sellerCard.name) === wantedLoose){
-        return sellerCard;
-      }
+    for(const card of sellerMap.values()){
+      if(card.loose === looseWanted) return card;
     }
 
     return null;
@@ -734,8 +817,8 @@
 
     comparisonData = [];
 
-    wanted.forEach((wantedCard, wantedKey) => {
-      const sellerCard = findSellerCard(seller, wantedKey, wantedCard.name);
+    wanted.forEach(wantedCard => {
+      const sellerCard = findSellerCard(seller, wantedCard.name);
       const sellerQuantity = sellerCard ? sellerCard.quantity : 0;
 
       let status = "missing";
@@ -766,7 +849,22 @@
 
     const available = comparisonData.filter(item => item.status === "found" || item.status === "partial").length;
 
-    setStatus(`${available} carta(s) disponíveis encontradas na lista do vendedor.`);
+    setStatus(`${available} carta(s) da sua lista foram encontradas na lista do vendedor.`);
+  }
+
+  function showAvailable(){
+    if(!comparisonData.length){
+      compareLists();
+      return;
+    }
+
+    document.getElementById("filterSelect").value = "available";
+    renderCards();
+  }
+
+  function showAllCards(){
+    document.getElementById("filterSelect").value = "all";
+    renderCards();
   }
 
   function updateStats(wantedCount, sellerCount){
@@ -779,26 +877,11 @@
     document.getElementById("missingCount").textContent = missing;
   }
 
-  function showAvailable(){
-    if(!comparisonData.length){
-      compareLists();
-      return;
-    }
-
-    document.getElementById("filterSelect").value = "partial";
-    renderCards();
-  }
-
-  function showAllCards(){
-    document.getElementById("filterSelect").value = "all";
-    renderCards();
-  }
-
   function formatCollections(collections){
     if(!collections || !collections.length) return "Coleção não informada";
 
     return collections
-      .map(c => `${escapeHTML(c.name)}${c.quantity > 1 ? ` (${c.quantity}x)` : ""}`)
+      .map(item => `${escapeHTML(item.name)}${item.quantity > 1 ? ` (${item.quantity}x)` : ""}`)
       .join("<br>");
   }
 
@@ -809,17 +892,19 @@
 
     let data = [...comparisonData];
 
-    if(filter === "available" || filter === "partial"){
+    if(filter === "available"){
       data = data.filter(item => item.status === "found" || item.status === "partial");
-    }else if(filter === "missing"){
+    }
+
+    if(filter === "missing"){
       data = data.filter(item => item.status === "missing");
     }
 
     if(search){
       data = data.filter(item => {
-        const cardMatch = normalizeCardName(item.name).includes(search);
+        const nameMatch = normalizeCardName(item.name).includes(search);
         const collectionMatch = normalizeCardName(item.collections.map(c => c.name).join(" ")).includes(search);
-        return cardMatch || collectionMatch;
+        return nameMatch || collectionMatch;
       });
     }
 
@@ -843,7 +928,7 @@
           </div>
 
           <div class="collection-box">
-            <div class="collection-title">Coleções / edições do vendedor</div>
+            <div class="collection-title">Coleção / edição do vendedor</div>
             ${formatCollections(item.collections)}
           </div>
         </div>
@@ -877,7 +962,7 @@
     }
 
     const rows = [
-      ["Status","Carta","Quantidade desejada","Quantidade vendedor","Coleções/Edições"]
+      ["Status","Carta","Quantidade desejada","Quantidade vendedor","Coleção/Edição"]
     ];
 
     comparisonData.forEach(item => {
@@ -935,7 +1020,6 @@
     document.getElementById("filterSelect").value = "available";
 
     comparisonData = [];
-
     updateStats(0,0);
 
     document.getElementById("cardsContainer").innerHTML = `
@@ -948,16 +1032,8 @@
   function setStatus(message){
     document.getElementById("status").textContent = message;
   }
-
-  function escapeHTML(text){
-    return String(text || "")
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
-      .replace(/'/g,"&#039;");
-  }
 </script>
 
 </body>
 </html>
+```
