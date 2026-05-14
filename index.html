@@ -13,19 +13,19 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f6f8;
+      background: #f3f4f6;
       color: #111827;
     }
 
     .container {
       max-width: 1200px;
-      margin: 0 auto;
+      margin: auto;
       padding: 24px;
     }
 
     h1 {
-      margin-bottom: 8px;
-      font-size: 28px;
+      margin: 0 0 8px;
+      font-size: 30px;
     }
 
     p {
@@ -41,24 +41,24 @@
 
     .card {
       background: #fff;
-      border-radius: 18px;
       padding: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
     }
 
     label {
-      display: block;
       font-weight: bold;
+      display: block;
       margin-bottom: 10px;
     }
 
     textarea {
       width: 100%;
-      min-height: 320px;
+      min-height: 340px;
       resize: vertical;
       padding: 14px;
-      border-radius: 12px;
       border: 1px solid #d1d5db;
+      border-radius: 12px;
       font-size: 14px;
     }
 
@@ -74,11 +74,10 @@
       border: none;
       border-radius: 12px;
       padding: 14px 18px;
-      font-weight: bold;
-      cursor: pointer;
       background: #111827;
       color: white;
-      transition: .2s;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     button:hover {
@@ -92,22 +91,38 @@
       margin: 24px 0;
     }
 
-    .result {
-      margin-top: 20px;
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .summary div {
+      background: white;
+      padding: 18px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
+    }
+
+    .summary strong {
+      display: block;
+      font-size: 28px;
+      margin-top: 8px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 14px;
       background: white;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
+      margin: 14px 0 28px;
     }
 
     th, td {
-      padding: 14px;
+      padding: 13px;
       border-bottom: 1px solid #e5e7eb;
       text-align: left;
       font-size: 14px;
@@ -131,33 +146,19 @@
       color: #166534;
     }
 
+    .parcial {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
     .faltando {
       background: #fee2e2;
       color: #991b1b;
     }
 
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 20px;
-    }
-
-    .summary div {
-      background: white;
-      padding: 18px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-    }
-
-    .summary strong {
-      display: block;
-      font-size: 26px;
-      margin-top: 8px;
-    }
-
     @media (max-width: 800px) {
-      .grid, .summary {
+      .grid,
+      .summary {
         grid-template-columns: 1fr;
       }
     }
@@ -167,13 +168,13 @@
 <body>
   <div class="container">
     <h1>Comparador de Cartas MTG</h1>
-    <p>Importe o CSV do vendedor, cole sua lista de cartas e clique em comparar.</p>
+    <p>Importe o CSV do vendedor, cole sua lista e compare automaticamente.</p>
 
     <div class="grid">
       <div class="card">
         <label>CSV do vendedor</label>
         <input type="file" id="csvVendedor" accept=".csv,text/csv" />
-        <p id="statusCsv">Nenhum arquivo carregado.</p>
+        <p id="statusCsv">Nenhum CSV carregado.</p>
       </div>
 
       <div class="card">
@@ -239,63 +240,82 @@
     <div class="actions">
       <button onclick="compararCartas()">Comparar</button>
       <button onclick="copiarPedido()">Copiar pedido ao vendedor</button>
-      <button onclick="limparTudo()">Limpar resultado</button>
+      <button onclick="limparResultado()">Limpar resultado</button>
     </div>
 
     <div class="summary">
       <div>
-        Cartas encontradas
+        Encontradas
         <strong id="totalEncontradas">0</strong>
       </div>
       <div>
-        Quantidade disponível
-        <strong id="totalDisponivel">0</strong>
+        Para pedir
+        <strong id="totalPedir">0</strong>
       </div>
       <div>
-        Quantidade faltando
+        Faltando
         <strong id="totalFaltando">0</strong>
       </div>
     </div>
 
-    <div class="result" id="resultado"></div>
+    <div id="resultado"></div>
   </div>
 
   <script>
-    let cartasVendedor = {};
+    let linhasCsvVendedor = [];
     let pedidoCopiar = "";
 
-    const csvInput = document.getElementById("csvVendedor");
-    const statusCsv = document.getElementById("statusCsv");
+    document.getElementById("csvVendedor").addEventListener("change", function () {
+      const arquivo = this.files[0];
 
-    csvInput.addEventListener("change", function () {
-      const file = this.files[0];
+      if (!arquivo) return;
 
-      if (!file) {
-        statusCsv.textContent = "Nenhum arquivo carregado.";
-        return;
-      }
+      const leitor = new FileReader();
 
-      const reader = new FileReader();
+      leitor.onload = function (evento) {
+        const texto = evento.target.result;
+        linhasCsvVendedor = lerCsv(texto);
 
-      reader.onload = function (e) {
-        const texto = e.target.result;
-        cartasVendedor = lerCsvVendedor(texto);
-        statusCsv.textContent = `${Object.keys(cartasVendedor).length} cartas carregadas do vendedor.`;
+        document.getElementById("statusCsv").textContent =
+          `${linhasCsvVendedor.length} linhas carregadas do CSV.`;
       };
 
-      reader.readAsText(file, "UTF-8");
+      leitor.readAsText(arquivo, "UTF-8");
     });
 
-    function normalizarNome(nome) {
-      return String(nome || "")
+    function normalizar(texto) {
+      return String(texto || "")
         .replace(/^\uFEFF/, "")
-        .trim()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-        .replace(/\s+/g, " ");
+        .replace(/\([^)]*\)/g, "")
+        .replace(/\[[^\]]*\]/g, "")
+        .replace(/["“”]/g, "")
+        .replace(/[’`´]/g, "'")
+        .replace(/[^a-z0-9' ]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     }
 
-    function separarCsvLinha(linha) {
-      const resultado = [];
+    function detectarSeparador(linha) {
+      const separadores = [",", ";", "\t"];
+      let melhor = ",";
+      let maior = 0;
+
+      separadores.forEach(sep => {
+        const qtd = linha.split(sep).length;
+        if (qtd > maior) {
+          maior = qtd;
+          melhor = sep;
+        }
+      });
+
+      return melhor;
+    }
+
+    function separarLinhaCsv(linha, separador) {
+      const colunas = [];
       let atual = "";
       let dentroAspas = false;
 
@@ -308,71 +328,29 @@
           i++;
         } else if (char === '"') {
           dentroAspas = !dentroAspas;
-        } else if (char === "," && !dentroAspas) {
-          resultado.push(atual.trim());
+        } else if (char === separador && !dentroAspas) {
+          colunas.push(atual.trim());
           atual = "";
         } else {
           atual += char;
         }
       }
 
-      resultado.push(atual.trim());
-      return resultado;
+      colunas.push(atual.trim());
+      return colunas;
     }
 
-    function lerCsvVendedor(csv) {
-      const linhas = csv
+    function lerCsv(texto) {
+      const linhas = texto
         .split(/\r?\n/)
         .map(linha => linha.trim())
         .filter(Boolean);
 
-      if (linhas.length === 0) return {};
+      if (linhas.length === 0) return [];
 
-      const cabecalho = separarCsvLinha(linhas[0]).map(c => normalizarNome(c));
+      const separador = detectarSeparador(linhas[0]);
 
-      let indiceNome = cabecalho.findIndex(c =>
-        c.includes("name") ||
-        c.includes("nome") ||
-        c.includes("card")
-      );
-
-      let indiceQtd = cabecalho.findIndex(c =>
-        c.includes("quantity") ||
-        c.includes("quantidade") ||
-        c === "qty" ||
-        c === "qtd"
-      );
-
-      if (indiceNome === -1) indiceNome = 0;
-      if (indiceQtd === -1) indiceQtd = 1;
-
-      const mapa = {};
-
-      for (let i = 1; i < linhas.length; i++) {
-        const colunas = separarCsvLinha(linhas[i]);
-
-        const nomeOriginal = colunas[indiceNome];
-        const nomeNormalizado = normalizarNome(nomeOriginal);
-
-        if (!nomeNormalizado) continue;
-
-        let quantidade = parseInt(colunas[indiceQtd], 10);
-
-        if (isNaN(quantidade)) {
-          quantidade = 1;
-        }
-
-        if (!mapa[nomeNormalizado]) {
-          mapa[nomeNormalizado] = {
-            nome: nomeOriginal.trim(),
-            quantidade: 0
-          };
-        }
-
-        mapa[nomeNormalizado].quantidade += quantidade;
-      }
-
-      return mapa;
+      return linhas.map(linha => separarLinhaCsv(linha, separador));
     }
 
     function lerListaDesejada(texto) {
@@ -381,64 +359,116 @@
         .map(linha => linha.trim())
         .filter(Boolean);
 
-      const mapa = {};
+      const cartas = [];
 
       linhas.forEach(linha => {
-        if (linha.toLowerCase() === "deck") return;
-        if (linha.toLowerCase().startsWith("sideboard")) return;
+        const lower = linha.toLowerCase();
+
+        if (
+          lower === "deck" ||
+          lower === "sideboard" ||
+          lower.startsWith("//")
+        ) {
+          return;
+        }
 
         const match = linha.match(/^(\d+)\s+(.+)$/);
 
         if (!match) return;
 
-        const quantidade = parseInt(match[1], 10);
-        const nome = match[2].trim();
-        const chave = normalizarNome(nome);
-
-        if (!mapa[chave]) {
-          mapa[chave] = {
-            nome,
-            quantidade: 0
-          };
-        }
-
-        mapa[chave].quantidade += quantidade;
+        cartas.push({
+          nome: match[2].trim(),
+          nomeNormalizado: normalizar(match[2]),
+          quantidade: parseInt(match[1], 10)
+        });
       });
 
-      return mapa;
+      return cartas;
+    }
+
+    function extrairQuantidadeDaLinha(colunas) {
+      for (const coluna of colunas) {
+        const valor = String(coluna).trim();
+
+        if (/^\d+$/.test(valor)) {
+          const numero = parseInt(valor, 10);
+
+          if (numero > 0 && numero < 9999) {
+            return numero;
+          }
+        }
+      }
+
+      return 1;
+    }
+
+    function linhaTemCarta(colunas, nomeNormalizado) {
+      return colunas.some(coluna => {
+        const texto = normalizar(coluna);
+
+        if (!texto) return false;
+
+        if (texto === nomeNormalizado) return true;
+
+        if (texto.includes(nomeNormalizado)) return true;
+
+        return false;
+      });
+    }
+
+    function buscarCartaNoVendedor(cartaDesejada) {
+      let quantidadeTotal = 0;
+      let linhasEncontradas = 0;
+
+      linhasCsvVendedor.forEach(colunas => {
+        if (linhaTemCarta(colunas, cartaDesejada.nomeNormalizado)) {
+          quantidadeTotal += extrairQuantidadeDaLinha(colunas);
+          linhasEncontradas++;
+        }
+      });
+
+      return {
+        quantidade: quantidadeTotal,
+        linhas: linhasEncontradas
+      };
     }
 
     function compararCartas() {
+      const resultado = document.getElementById("resultado");
+
+      if (linhasCsvVendedor.length === 0) {
+        alert("Carregue primeiro o CSV do vendedor.");
+        return;
+      }
+
       const listaTexto = document.getElementById("listaDesejada").value;
       const desejadas = lerListaDesejada(listaTexto);
 
       const encontradas = [];
       const faltando = [];
 
-      Object.keys(desejadas).forEach(chave => {
-        const cartaDesejada = desejadas[chave];
-        const cartaVendedor = cartasVendedor[chave];
+      desejadas.forEach(carta => {
+        const vendedor = buscarCartaNoVendedor(carta);
 
-        const qtdDesejada = cartaDesejada.quantidade;
-        const qtdVendedor = cartaVendedor ? cartaVendedor.quantidade : 0;
-        const qtdParaPedir = Math.min(qtdDesejada, qtdVendedor);
-        const qtdFaltando = Math.max(qtdDesejada - qtdVendedor, 0);
+        const qtdVendedor = vendedor.quantidade;
+        const qtdPedir = Math.min(carta.quantidade, qtdVendedor);
+        const qtdFaltando = Math.max(carta.quantidade - qtdVendedor, 0);
 
         if (qtdVendedor > 0) {
           encontradas.push({
-            nome: cartaDesejada.nome,
-            deseja: qtdDesejada,
+            nome: carta.nome,
+            quero: carta.quantidade,
             vendedor: qtdVendedor,
-            pedir: qtdParaPedir,
+            pedir: qtdPedir,
             falta: qtdFaltando
           });
         } else {
           faltando.push({
-            nome: cartaDesejada.nome,
-            deseja: qtdDesejada,
+            nome: carta.nome,
+            quero: carta.quantidade,
             vendedor: 0,
             pedir: 0,
-            falta: qtdDesejada
+            falta: carta.quantidade
           });
         }
       });
@@ -447,27 +477,17 @@
         .map(carta => `${carta.pedir} ${carta.nome}`)
         .join("\n");
 
-      const totalEncontradas = encontradas.length;
-      const totalDisponivel = encontradas.reduce((total, carta) => total + carta.pedir, 0);
-      const totalFaltando =
-        encontradas.reduce((total, carta) => total + carta.falta, 0) +
-        faltando.reduce((total, carta) => total + carta.falta, 0);
+      document.getElementById("totalEncontradas").textContent = encontradas.length;
+      document.getElementById("totalPedir").textContent =
+        encontradas.reduce((soma, carta) => soma + carta.pedir, 0);
+      document.getElementById("totalFaltando").textContent =
+        encontradas.reduce((soma, carta) => soma + carta.falta, 0) +
+        faltando.reduce((soma, carta) => soma + carta.falta, 0);
 
-      document.getElementById("totalEncontradas").textContent = totalEncontradas;
-      document.getElementById("totalDisponivel").textContent = totalDisponivel;
-      document.getElementById("totalFaltando").textContent = totalFaltando;
-
-      renderizarResultado(encontradas, faltando);
+      resultado.innerHTML = montarTabela(encontradas, faltando);
     }
 
-    function renderizarResultado(encontradas, faltando) {
-      const resultado = document.getElementById("resultado");
-
-      if (Object.keys(cartasVendedor).length === 0) {
-        resultado.innerHTML = "<p>Carregue o CSV do vendedor antes de comparar.</p>";
-        return;
-      }
-
+    function montarTabela(encontradas, faltando) {
       let html = "";
 
       html += `
@@ -487,22 +507,18 @@
       `;
 
       if (encontradas.length === 0) {
-        html += `
-          <tr>
-            <td colspan="6">Nenhuma carta encontrada no CSV do vendedor.</td>
-          </tr>
-        `;
+        html += `<tr><td colspan="6">Nenhuma carta encontrada.</td></tr>`;
       } else {
         encontradas.forEach(carta => {
           html += `
             <tr>
               <td>${escaparHtml(carta.nome)}</td>
-              <td>${carta.deseja}</td>
+              <td>${carta.quero}</td>
               <td>${carta.vendedor}</td>
               <td>${carta.pedir}</td>
               <td>${carta.falta}</td>
               <td>
-                <span class="badge ${carta.falta === 0 ? "ok" : "faltando"}">
+                <span class="badge ${carta.falta === 0 ? "ok" : "parcial"}">
                   ${carta.falta === 0 ? "Completo" : "Parcial"}
                 </span>
               </td>
@@ -523,23 +539,21 @@
             <tr>
               <th>Carta</th>
               <th>Quantidade faltando</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
       `;
 
       if (faltando.length === 0) {
-        html += `
-          <tr>
-            <td colspan="2">Nenhuma carta faltando totalmente.</td>
-          </tr>
-        `;
+        html += `<tr><td colspan="3">Nenhuma carta faltando totalmente.</td></tr>`;
       } else {
         faltando.forEach(carta => {
           html += `
             <tr>
               <td>${escaparHtml(carta.nome)}</td>
               <td>${carta.falta}</td>
+              <td><span class="badge faltando">Faltando</span></td>
             </tr>
           `;
         });
@@ -550,7 +564,7 @@
         </table>
       `;
 
-      resultado.innerHTML = html;
+      return html;
     }
 
     function copiarPedido() {
@@ -560,18 +574,14 @@
       }
 
       navigator.clipboard.writeText(pedidoCopiar)
-        .then(() => {
-          alert("Pedido copiado para a área de transferência!");
-        })
-        .catch(() => {
-          alert("Não foi possível copiar automaticamente.");
-        });
+        .then(() => alert("Pedido copiado!"))
+        .catch(() => alert("Não foi possível copiar automaticamente."));
     }
 
-    function limparTudo() {
+    function limparResultado() {
       document.getElementById("resultado").innerHTML = "";
       document.getElementById("totalEncontradas").textContent = "0";
-      document.getElementById("totalDisponivel").textContent = "0";
+      document.getElementById("totalPedir").textContent = "0";
       document.getElementById("totalFaltando").textContent = "0";
       pedidoCopiar = "";
     }
