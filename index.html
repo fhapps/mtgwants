@@ -7,30 +7,25 @@
 
   <style>
     :root{
-      --bg:#f4f7fb;
-      --card:#ffffff;
       --text:#172033;
       --muted:#6b7280;
       --primary:#5b5ef7;
       --primary-dark:#4346d8;
       --green:#16a34a;
       --green-bg:#dcfce7;
-      --yellow:#f59e0b;
       --yellow-bg:#fef3c7;
+      --yellow:#92400e;
       --red:#dc2626;
       --red-bg:#fee2e2;
       --border:#e5e7eb;
       --shadow:0 20px 45px rgba(15,23,42,.08);
-      --radius:24px;
     }
 
-    *{
-      box-sizing:border-box;
-    }
+    *{box-sizing:border-box}
 
     body{
       margin:0;
-      font-family:Arial, Helvetica, sans-serif;
+      font-family:Arial,Helvetica,sans-serif;
       background:linear-gradient(135deg,#eef2ff,#f8fafc);
       color:var(--text);
     }
@@ -42,27 +37,26 @@
 
     header h1{
       margin:0;
-      font-size:clamp(28px,5vw,50px);
+      font-size:clamp(28px,5vw,48px);
       letter-spacing:-1.5px;
     }
 
     header p{
       max-width:900px;
       margin:12px auto 0;
-      line-height:1.6;
       color:var(--muted);
-      font-size:16px;
+      line-height:1.6;
     }
 
     main{
-      width:min(1280px, calc(100% - 32px));
+      width:min(1280px,calc(100% - 32px));
       margin:0 auto 60px;
     }
 
     .panel{
-      background:rgba(255,255,255,.92);
-      border:1px solid rgba(255,255,255,.7);
-      border-radius:var(--radius);
+      background:rgba(255,255,255,.94);
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:24px;
       box-shadow:var(--shadow);
       padding:22px;
       margin-bottom:20px;
@@ -74,9 +68,9 @@
       color:#92400e;
       border-radius:18px;
       padding:14px 16px;
+      font-size:14px;
       line-height:1.5;
       margin-bottom:18px;
-      font-size:14px;
     }
 
     .grid{
@@ -92,9 +86,7 @@
       font-size:14px;
     }
 
-    textarea,
-    input,
-    select{
+    textarea,input,select{
       width:100%;
       border:1px solid var(--border);
       border-radius:16px;
@@ -111,9 +103,7 @@
       line-height:1.45;
     }
 
-    textarea:focus,
-    input:focus,
-    select:focus{
+    textarea:focus,input:focus,select:focus{
       border-color:var(--primary);
       box-shadow:0 0 0 4px rgba(91,94,247,.12);
     }
@@ -126,9 +116,7 @@
       padding:14px;
     }
 
-    .file-box input{
-      padding:10px;
-    }
+    .file-box input{padding:10px}
 
     .hint{
       color:var(--muted);
@@ -167,10 +155,6 @@
     .btn-light{
       background:#eef2ff;
       color:var(--primary-dark);
-    }
-
-    .btn-light:hover{
-      background:#e0e7ff;
     }
 
     .btn-danger{
@@ -221,9 +205,7 @@
       margin-bottom:16px;
     }
 
-    .toolbar input{
-      max-width:340px;
-    }
+    .toolbar input{max-width:340px}
 
     .cards-grid{
       display:grid;
@@ -236,8 +218,6 @@
       padding:18px;
       border:1px solid var(--border);
       background:#fff;
-      position:relative;
-      overflow:hidden;
       transition:.2s;
     }
 
@@ -297,7 +277,7 @@
     }
 
     .collection-box{
-      background:rgba(255,255,255,.7);
+      background:rgba(255,255,255,.75);
       border-radius:14px;
       padding:12px;
       font-size:13px;
@@ -315,135 +295,79 @@
       text-align:center;
       padding:50px 20px;
       color:var(--muted);
+      grid-column:1/-1;
     }
 
     @media(max-width:900px){
-      .grid,
-      .stats{
-        grid-template-columns:1fr;
-      }
-
-      .toolbar{
-        align-items:stretch;
-      }
-
-      .toolbar input{
-        max-width:none;
-      }
+      .grid,.stats{grid-template-columns:1fr}
+      .toolbar{align-items:stretch}
+      .toolbar input{max-width:none}
     }
   </style>
 </head>
+
 <body>
 
 <header>
   <h1>Comparador de Cartas Magic</h1>
-
   <p>
-    Compare sua lista de cartas com a coleção do vendedor.
-    O sistema identifica automaticamente cartas disponíveis,
-    quantidade e coleção/edição quando presente no CSV.
+    Cole ou importe sua lista e a lista do vendedor. Ao clicar em
+    <strong>Mostrar disponíveis</strong>, aparecem somente as cartas que você quer e o vendedor tem.
   </p>
 </header>
 
 <main>
 
   <section class="panel">
-
     <div class="alert">
-      O CSV do vendedor pode ter colunas:
-      <strong>Quantidade</strong>,
-      <strong>Nome</strong>,
-      <strong>Coleção</strong> /
-      <strong>Edição</strong>.
+      Aceita texto, TXT, CSV, HTML e CSV com colunas em qualquer ordem.
+      O vendedor pode ter colunas como <strong>Nome</strong>, <strong>Carta</strong>,
+      <strong>Quantidade</strong>, <strong>Coleção</strong>, <strong>Edição</strong> ou <strong>Set</strong>.
     </div>
 
     <div class="grid">
-
       <div>
         <label>Sua lista</label>
-
         <textarea id="wantedText" placeholder="Deck
 1 Sol Ring
 1 Rhystic Study
 1 Cyclonic Rift"></textarea>
 
         <div class="file-box">
-          <label>Importar TXT / CSV / HTML</label>
-
-          <input
-            type="file"
-            id="wantedFile"
-            accept=".txt,.csv,.html,.htm"
-            onchange="importFile('wantedFile','wantedText')"
-          >
-
-          <div class="hint">
-            Aceita listas no formato Deck, TXT e CSV.
-          </div>
+          <label>Importar sua lista</label>
+          <input type="file" id="wantedFile" accept=".txt,.csv,.html,.htm" onchange="importFile('wantedFile','wantedText')">
+          <div class="hint">Aceita TXT, CSV, HTML e HTM.</div>
         </div>
       </div>
 
       <div>
         <label>Lista do vendedor</label>
-
         <textarea id="sellerText" placeholder="Quantidade,Nome,Coleção
 2,Sol Ring,Commander Legends
 1,Rhystic Study,Jumpstart"></textarea>
 
         <div class="file-box">
-          <label>Importar TXT / CSV / HTML</label>
-
-          <input
-            type="file"
-            id="sellerFile"
-            accept=".txt,.csv,.html,.htm"
-            onchange="importFile('sellerFile','sellerText')"
-          >
-
-          <div class="hint">
-            Se houver coluna coleção/edição ela será exibida.
-          </div>
+          <label>Importar lista do vendedor</label>
+          <input type="file" id="sellerFile" accept=".txt,.csv,.html,.htm" onchange="importFile('sellerFile','sellerText')">
+          <div class="hint">Se tiver coleção/edição no CSV, ela aparecerá no resultado.</div>
         </div>
       </div>
-
     </div>
 
     <div class="actions">
-      <button class="btn-primary" onclick="compareLists()">
-        Comparar cartas
-      </button>
-
-      <button class="btn-light" onclick="showFoundOnly()">
-        Mostrar disponíveis
-      </button>
-
-      <button class="btn-light" onclick="showAllCards()">
-        Mostrar todas
-      </button>
-
-      <button class="btn-light" onclick="exportCSV()">
-        Exportar CSV
-      </button>
-
-      <button class="btn-light" onclick="copyMatches()">
-        Copiar encontradas
-      </button>
-
-      <button class="btn-danger" onclick="clearAll()">
-        Limpar
-      </button>
+      <button class="btn-primary" onclick="compareLists()">Comparar cartas</button>
+      <button class="btn-light" onclick="showAvailable()">Mostrar disponíveis</button>
+      <button class="btn-light" onclick="showAllCards()">Mostrar todas</button>
+      <button class="btn-light" onclick="exportCSV()">Exportar CSV</button>
+      <button class="btn-light" onclick="copyMatches()">Copiar disponíveis</button>
+      <button class="btn-danger" onclick="clearAll()">Limpar</button>
     </div>
 
-    <div id="status" class="status">
-      Pronto para comparar.
-    </div>
-
+    <div id="status" class="status">Pronto para comparar.</div>
   </section>
 
   <section class="panel">
-
     <div class="stats">
-
       <div class="stat">
         <strong id="wantedCount">0</strong>
         <span>Cartas na sua lista</span>
@@ -463,633 +387,576 @@
         <strong id="missingCount">0</strong>
         <span>Faltantes</span>
       </div>
-
     </div>
-
   </section>
 
   <section class="panel">
-
     <div class="toolbar">
-
-      <input
-        id="searchInput"
-        placeholder="Buscar carta..."
-        oninput="renderCards()"
-      >
+      <input id="searchInput" placeholder="Buscar carta ou coleção..." oninput="renderCards()">
 
       <select id="filterSelect" onchange="renderCards()">
-        <option value="found">Somente disponíveis</option>
+        <option value="available">Somente disponíveis</option>
         <option value="partial">Disponíveis + parciais</option>
         <option value="missing">Somente faltantes</option>
         <option value="all">Todas</option>
       </select>
-
     </div>
 
     <div id="cardsContainer" class="cards-grid">
-
-      <div class="empty">
-        Nenhuma comparação feita ainda.
-      </div>
-
+      <div class="empty">Nenhuma comparação feita ainda.</div>
     </div>
-
   </section>
 
 </main>
 
 <script>
+  let comparisonData = [];
 
-let comparisonData = [];
-
-function normalizeCardName(name){
-  return String(name)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/\s+/g," ")
-    .replace(/[^\w\s,'"-/]/g,"")
-    .trim();
-}
-
-function stripHTML(html){
-  const doc = new DOMParser().parseFromString(html,"text/html");
-
-  doc.querySelectorAll("script,style,noscript,svg,iframe")
-    .forEach(el => el.remove());
-
-  return doc.body.innerText
-    .split("\n")
-    .map(line => line.trim())
-    .filter(Boolean)
-    .join("\n");
-}
-
-function parseCSVLine(line){
-
-  const result = [];
-  let current = "";
-  let inside = false;
-
-  for(let i=0;i<line.length;i++){
-
-    const char = line[i];
-    const next = line[i+1];
-
-    if(char === '"' && inside && next === '"'){
-      current += '"';
-      i++;
-    }
-    else if(char === '"'){
-      inside = !inside;
-    }
-    else if((char === "," || char === ";") && !inside){
-      result.push(current.trim());
-      current = "";
-    }
-    else{
-      current += char;
-    }
+  function normalizeCardName(name){
+    return String(name || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g,"")
+      .replace(/[’‘`´]/g,"'")
+      .replace(/[“”]/g,'"')
+      .replace(/\s*\/\/\s*/g," // ")
+      .replace(/\s+/g," ")
+      .replace(/[^\p{L}\p{N}\s,'"!?:/&.-]/gu,"")
+      .trim();
   }
 
-  result.push(current.trim());
-
-  return result;
-}
-
-function isCSV(text){
-
-  const lines = String(text)
-    .split(/\r?\n/)
-    .filter(Boolean);
-
-  if(lines.length < 2) return false;
-
-  return lines[0].includes(",") || lines[0].includes(";");
-}
-
-function normalizeHeader(text){
-  return String(text)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-z0-9_]/g,"")
-    .trim();
-}
-
-function parseDeckLine(line){
-
-  let clean = String(line)
-    .replace(/\t/g," ")
-    .replace(/\s+/g," ")
-    .trim();
-
-  let quantity = 1;
-
-  const patterns = [
-    /^\s*(\d+)\s*x\s+(.+)$/i,
-    /^\s*(\d+)\s+(.+)$/i
-  ];
-
-  for(const pattern of patterns){
-
-    const match = clean.match(pattern);
-
-    if(match){
-      quantity = Number(match[1]) || 1;
-      clean = match[2];
-      break;
-    }
+  function looseKey(name){
+    return normalizeCardName(name)
+      .replace(/[^a-z0-9]/g,"");
   }
 
-  clean = clean
-    .replace(/\s*-\s*R\$.*$/i,"")
-    .replace(/\s*\(.*?\)\s*$/g,"")
-    .replace(/\s*\[.*?\]\s*$/g,"")
-    .trim();
+  function stripHTML(html){
+    const doc = new DOMParser().parseFromString(html,"text/html");
+    doc.querySelectorAll("script,style,noscript,svg,iframe").forEach(el => el.remove());
 
-  return {
-    quantity,
-    name: clean
-  };
-}
+    return doc.body.innerText
+      .replace(/\t/g," ")
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(Boolean)
+      .join("\n");
+  }
 
-function addCardToMap(map,name,quantity,collection=""){
+  function detectDelimiter(line){
+    const delimiters = [",",";","\t"];
+    let best = ",";
+    let max = 0;
 
-  const key = normalizeCardName(name);
-
-  if(!key || key.length < 2) return;
-
-  if(!map.has(key)){
-    map.set(key,{
-      name,
-      quantity:0,
-      collections:[]
+    delimiters.forEach(delimiter => {
+      const count = splitDelimitedLine(line, delimiter).length;
+      if(count > max){
+        max = count;
+        best = delimiter;
+      }
     });
+
+    return best;
   }
 
-  const card = map.get(key);
+  function splitDelimitedLine(line, delimiter){
+    const result = [];
+    let current = "";
+    let insideQuotes = false;
 
-  card.quantity += quantity;
+    for(let i = 0; i < line.length; i++){
+      const char = line[i];
+      const next = line[i + 1];
 
-  if(collection){
-
-    const existing = card.collections.find(
-      c => normalizeCardName(c.name) === normalizeCardName(collection)
-    );
-
-    if(existing){
-      existing.quantity += quantity;
+      if(char === '"' && insideQuotes && next === '"'){
+        current += '"';
+        i++;
+      }else if(char === '"'){
+        insideQuotes = !insideQuotes;
+      }else if(char === delimiter && !insideQuotes){
+        result.push(current.trim());
+        current = "";
+      }else{
+        current += char;
+      }
     }
-    else{
-      card.collections.push({
-        name:collection,
-        quantity
+
+    result.push(current.trim());
+    return result;
+  }
+
+  function normalizeHeader(text){
+    return String(text || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9]/g,"")
+      .trim();
+  }
+
+  function isNumeric(value){
+    return /^\d+([,.]\d+)?$/.test(String(value || "").trim());
+  }
+
+  function parseQuantity(value){
+    const number = Number(String(value || "").replace(",",".").replace(/[^\d.]/g,""));
+    return number > 0 ? number : 1;
+  }
+
+  function cleanName(name){
+    return String(name || "")
+      .replace(/\t/g," ")
+      .replace(/\s+/g," ")
+      .replace(/^\s*\d+\s*x?\s+/i,"")
+      .replace(/\s+x?\s*\d+\s*$/i,"")
+      .replace(/\s*-\s*R\$.*$/i,"")
+      .replace(/\s*R\$.*$/i,"")
+      .replace(/\s*\|.*$/g,"")
+      .replace(/\s*#.*$/g,"")
+      .replace(/\s*\(.*?\)\s*$/g,"")
+      .replace(/\s*\[.*?\]\s*$/g,"")
+      .trim();
+  }
+
+  function isIgnoredLine(line){
+    const lower = String(line || "").toLowerCase().trim();
+
+    if(!lower) return true;
+    if(/^https?:\/\//i.test(lower)) return true;
+    if(/^r\$/i.test(lower)) return true;
+
+    const ignored = [
+      "deck","sideboard","commander","maybeboard","mainboard",
+      "nome","name","card","cards","carta","cartas",
+      "quantidade","qtd","qty","count","quantity",
+      "colecao","coleção","collection","edicao","edição","edition","set",
+      "preco","preço","valor","idioma","raridade","condicao","condição",
+      "ligamagic","total","resultado"
+    ];
+
+    return ignored.includes(lower);
+  }
+
+  function addCardToMap(map, name, quantity = 1, collection = ""){
+    const finalName = cleanName(name);
+    const finalCollection = String(collection || "").trim();
+
+    if(isIgnoredLine(finalName)) return;
+
+    const key = normalizeCardName(finalName);
+    const loose = looseKey(finalName);
+
+    if(!key || key.length < 2 || !loose) return;
+
+    if(!map.has(key)){
+      map.set(key,{
+        name: finalName,
+        quantity: 0,
+        collections: [],
+        aliases: new Set([loose])
       });
     }
-  }
-}
 
-function parseCSV(text){
+    const card = map.get(key);
+    const qty = parseQuantity(quantity);
 
-  const lines = text
-    .split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(Boolean);
+    card.quantity += qty;
+    card.aliases.add(loose);
 
-  const map = new Map();
+    if(finalCollection){
+      const existing = card.collections.find(c => normalizeCardName(c.name) === normalizeCardName(finalCollection));
 
-  if(!lines.length) return map;
-
-  const headers = parseCSVLine(lines[0])
-    .map(h => normalizeHeader(h));
-
-  const nameIndex = headers.findIndex(h =>
-    ["nome","name","card","carta"].includes(h)
-  );
-
-  const qtyIndex = headers.findIndex(h =>
-    ["quantidade","qtd","qty","count","quantity"].includes(h)
-  );
-
-  const collectionIndex = headers.findIndex(h =>
-    ["colecao","collection","edicao","edition","set"].includes(h)
-  );
-
-  for(let i=1;i<lines.length;i++){
-
-    const cells = parseCSVLine(lines[i]);
-
-    const name = cells[nameIndex] || "";
-    const qty = Number(cells[qtyIndex]) || 1;
-    const collection = collectionIndex >= 0
-      ? cells[collectionIndex]
-      : "";
-
-    addCardToMap(map,name,qty,collection);
-  }
-
-  return map;
-}
-
-function parseList(text){
-
-  let source = String(text || "");
-
-  if(source.includes("<html")){
-    source = stripHTML(source);
-  }
-
-  if(isCSV(source)){
-    return parseCSV(source);
-  }
-
-  const map = new Map();
-
-  source
-    .split(/\r?\n|;/)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .forEach(line => {
-
-      const lower = line.toLowerCase();
-
-      if([
-        "deck",
-        "sideboard",
-        "commander"
-      ].includes(lower)) return;
-
-      const parsed = parseDeckLine(line);
-
-      addCardToMap(
-        map,
-        parsed.name,
-        parsed.quantity
-      );
-    });
-
-  return map;
-}
-
-function compareLists(){
-
-  const wantedText = document.getElementById("wantedText").value;
-  const sellerText = document.getElementById("sellerText").value;
-
-  if(!wantedText.trim() || !sellerText.trim()){
-
-    setStatus("Cole/importe as duas listas.");
-
-    return;
-  }
-
-  const wanted = parseList(wantedText);
-  const seller = parseList(sellerText);
-
-  comparisonData = [];
-
-  wanted.forEach((wantedCard,key)=>{
-
-    const sellerCard = seller.get(key);
-
-    const sellerQuantity = sellerCard
-      ? sellerCard.quantity
-      : 0;
-
-    let status = "missing";
-
-    if(sellerQuantity >= wantedCard.quantity){
-      status = "found";
+      if(existing){
+        existing.quantity += qty;
+      }else{
+        card.collections.push({
+          name: finalCollection,
+          quantity: qty
+        });
+      }
     }
-    else if(sellerQuantity > 0){
-      status = "partial";
+  }
+
+  function parseDeckLine(line){
+    let clean = String(line || "").replace(/\t/g," ").replace(/\s+/g," ").trim();
+    let quantity = 1;
+
+    const patterns = [
+      /^\s*(\d+)\s*x\s+(.+)$/i,
+      /^\s*(\d+)\s+(.+)$/i,
+      /^(.+?)\s+x\s*(\d+)\s*$/i,
+      /^(.+?)\s+(\d+)\s*x\s*$/i
+    ];
+
+    for(const pattern of patterns){
+      const match = clean.match(pattern);
+
+      if(match){
+        if(isNumeric(match[1])){
+          quantity = parseQuantity(match[1]);
+          clean = match[2];
+        }else{
+          clean = match[1];
+          quantity = parseQuantity(match[2]);
+        }
+        break;
+      }
     }
 
-    comparisonData.push({
-      name:wantedCard.name,
-      wantedQuantity:wantedCard.quantity,
-      sellerQuantity,
-      collections:sellerCard
-        ? sellerCard.collections
-        : [],
-      status
-    });
-  });
+    return {
+      name: cleanName(clean),
+      quantity
+    };
+  }
 
-  comparisonData.sort((a,b)=>{
+  function looksLikeCSV(text){
+    const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if(lines.length < 2) return false;
 
-    const order = {
-      found:1,
-      partial:2,
-      missing:3
+    const first = lines[0];
+    return first.includes(",") || first.includes(";") || first.includes("\t");
+  }
+
+  function parseCSV(text){
+    const lines = String(text || "").split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const map = new Map();
+
+    if(!lines.length) return map;
+
+    const delimiter = detectDelimiter(lines[0]);
+    const firstCells = splitDelimitedLine(lines[0], delimiter);
+    const headers = firstCells.map(normalizeHeader);
+
+    const headerNames = {
+      name: ["nome","name","card","carta","cardname","nomedacarta","cartanome"],
+      quantity: ["quantidade","qtd","qty","count","quantity","qtde"],
+      collection: ["colecao","collection","edicao","edition","set","expansao","expansion","serie","series"]
     };
 
-    if(order[a.status] !== order[b.status]){
-      return order[a.status] - order[b.status];
+    let nameIndex = headers.findIndex(h => headerNames.name.includes(h));
+    let qtyIndex = headers.findIndex(h => headerNames.quantity.includes(h));
+    let collectionIndex = headers.findIndex(h => headerNames.collection.includes(h));
+
+    const hasHeader = nameIndex >= 0 || qtyIndex >= 0 || collectionIndex >= 0;
+    const start = hasHeader ? 1 : 0;
+
+    for(let i = start; i < lines.length; i++){
+      const cells = splitDelimitedLine(lines[i], delimiter).map(cell => cell.replace(/^"|"$/g,"").trim());
+
+      let name = "";
+      let quantity = 1;
+      let collection = "";
+
+      if(hasHeader){
+        name = nameIndex >= 0 ? cells[nameIndex] : "";
+        quantity = qtyIndex >= 0 ? parseQuantity(cells[qtyIndex]) : 1;
+        collection = collectionIndex >= 0 ? cells[collectionIndex] : "";
+
+        if(!name){
+          const fallback = cells.find(cell => cell && !isNumeric(cell) && !isIgnoredLine(cell));
+          name = fallback || "";
+        }
+      }else{
+        const numericIndex = cells.findIndex(isNumeric);
+        const possibleNameIndex = cells.findIndex((cell, index) => index !== numericIndex && cell && !isIgnoredLine(cell));
+
+        if(numericIndex >= 0 && possibleNameIndex >= 0){
+          quantity = parseQuantity(cells[numericIndex]);
+          name = cells[possibleNameIndex];
+          collection = cells.find((cell, index) => index !== numericIndex && index !== possibleNameIndex && cell) || "";
+        }else{
+          const parsed = parseDeckLine(cells.join(" "));
+          name = parsed.name;
+          quantity = parsed.quantity;
+        }
+      }
+
+      addCardToMap(map, name, quantity, collection);
     }
 
-    return a.name.localeCompare(b.name);
-  });
-
-  updateStats(
-    wanted.size,
-    seller.size
-  );
-
-  document.getElementById("filterSelect").value = "found";
-
-  renderCards();
-
-  const found = comparisonData.filter(
-    item => item.status === "found"
-  ).length;
-
-  setStatus(
-    `${found} cartas disponíveis encontradas na coleção do vendedor.`
-  );
-}
-
-function updateStats(wantedCount,sellerCount){
-
-  const matches = comparisonData.filter(
-    item => item.status === "found" || item.status === "partial"
-  ).length;
-
-  const missing = comparisonData.filter(
-    item => item.status === "missing"
-  ).length;
-
-  document.getElementById("wantedCount").textContent = wantedCount;
-  document.getElementById("sellerCount").textContent = sellerCount;
-  document.getElementById("matchCount").textContent = matches;
-  document.getElementById("missingCount").textContent = missing;
-}
-
-function formatCollections(collections){
-
-  if(!collections.length){
-    return "Coleção não informada";
+    return map;
   }
 
-  return collections
-    .map(c =>
-      `${c.name}${c.quantity > 1 ? ` (${c.quantity}x)` : ""}`
-    )
-    .join("<br>");
-}
+  function parseList(text){
+    let source = String(text || "");
 
-function renderCards(){
+    if(source.includes("<html") || source.includes("<body") || source.includes("<table") || source.includes("<div")){
+      source = stripHTML(source);
+    }
 
-  const container = document.getElementById("cardsContainer");
+    if(looksLikeCSV(source)){
+      const csvMap = parseCSV(source);
+      if(csvMap.size) return csvMap;
+    }
 
-  const filter = document.getElementById("filterSelect").value;
+    const map = new Map();
 
-  const search = normalizeCardName(
-    document.getElementById("searchInput").value
-  );
+    source
+      .split(/\r?\n|;/)
+      .map(line => line.trim())
+      .filter(line => !isIgnoredLine(line))
+      .forEach(line => {
+        const parsed = parseDeckLine(line);
+        addCardToMap(map, parsed.name, parsed.quantity, "");
+      });
 
-  let data = [...comparisonData];
-
-  if(filter !== "all"){
-    data = data.filter(item => item.status === filter);
+    return map;
   }
 
-  if(filter === "partial"){
-    data = data.filter(item =>
-      item.status === "found" ||
-      item.status === "partial"
-    );
+  function findSellerCard(sellerMap, wantedKey, wantedName){
+    if(sellerMap.has(wantedKey)) return sellerMap.get(wantedKey);
+
+    const wantedLoose = looseKey(wantedName);
+
+    for(const sellerCard of sellerMap.values()){
+      if(sellerCard.aliases && sellerCard.aliases.has(wantedLoose)){
+        return sellerCard;
+      }
+
+      if(looseKey(sellerCard.name) === wantedLoose){
+        return sellerCard;
+      }
+    }
+
+    return null;
   }
 
-  if(search){
+  function compareLists(){
+    const wantedText = document.getElementById("wantedText").value;
+    const sellerText = document.getElementById("sellerText").value;
 
-    data = data.filter(item => {
+    if(!wantedText.trim() || !sellerText.trim()){
+      setStatus("Cole ou importe as duas listas antes de comparar.");
+      return;
+    }
 
-      const card = normalizeCardName(item.name);
+    const wanted = parseList(wantedText);
+    const seller = parseList(sellerText);
 
-      const collections = normalizeCardName(
-        item.collections.map(c=>c.name).join(" ")
-      );
+    comparisonData = [];
 
-      return card.includes(search) ||
-             collections.includes(search);
+    wanted.forEach((wantedCard, wantedKey) => {
+      const sellerCard = findSellerCard(seller, wantedKey, wantedCard.name);
+      const sellerQuantity = sellerCard ? sellerCard.quantity : 0;
+
+      let status = "missing";
+
+      if(sellerQuantity >= wantedCard.quantity){
+        status = "found";
+      }else if(sellerQuantity > 0){
+        status = "partial";
+      }
+
+      comparisonData.push({
+        name: wantedCard.name,
+        wantedQuantity: wantedCard.quantity,
+        sellerQuantity,
+        collections: sellerCard ? sellerCard.collections : [],
+        status
+      });
     });
+
+    comparisonData.sort((a,b) => {
+      const order = { found:1, partial:2, missing:3 };
+      if(order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+      return a.name.localeCompare(b.name);
+    });
+
+    updateStats(wanted.size, seller.size);
+    showAvailable();
+
+    const available = comparisonData.filter(item => item.status === "found" || item.status === "partial").length;
+
+    setStatus(`${available} carta(s) disponíveis encontradas na lista do vendedor.`);
   }
 
-  if(!data.length){
+  function updateStats(wantedCount, sellerCount){
+    const available = comparisonData.filter(item => item.status === "found" || item.status === "partial").length;
+    const missing = comparisonData.filter(item => item.status === "missing").length;
 
-    container.innerHTML = `
-      <div class="empty">
-        Nenhuma carta encontrada.
-      </div>
+    document.getElementById("wantedCount").textContent = wantedCount;
+    document.getElementById("sellerCount").textContent = sellerCount;
+    document.getElementById("matchCount").textContent = available;
+    document.getElementById("missingCount").textContent = missing;
+  }
+
+  function showAvailable(){
+    if(!comparisonData.length){
+      compareLists();
+      return;
+    }
+
+    document.getElementById("filterSelect").value = "partial";
+    renderCards();
+  }
+
+  function showAllCards(){
+    document.getElementById("filterSelect").value = "all";
+    renderCards();
+  }
+
+  function formatCollections(collections){
+    if(!collections || !collections.length) return "Coleção não informada";
+
+    return collections
+      .map(c => `${escapeHTML(c.name)}${c.quantity > 1 ? ` (${c.quantity}x)` : ""}`)
+      .join("<br>");
+  }
+
+  function renderCards(){
+    const container = document.getElementById("cardsContainer");
+    const filter = document.getElementById("filterSelect").value;
+    const search = normalizeCardName(document.getElementById("searchInput").value);
+
+    let data = [...comparisonData];
+
+    if(filter === "available" || filter === "partial"){
+      data = data.filter(item => item.status === "found" || item.status === "partial");
+    }else if(filter === "missing"){
+      data = data.filter(item => item.status === "missing");
+    }
+
+    if(search){
+      data = data.filter(item => {
+        const cardMatch = normalizeCardName(item.name).includes(search);
+        const collectionMatch = normalizeCardName(item.collections.map(c => c.name).join(" ")).includes(search);
+        return cardMatch || collectionMatch;
+      });
+    }
+
+    if(!data.length){
+      container.innerHTML = `<div class="empty">Nenhuma carta encontrada neste filtro.</div>`;
+      return;
+    }
+
+    container.innerHTML = data.map(item => {
+      const color = item.status === "found" ? "green" : item.status === "partial" ? "yellow" : "red";
+      const label = item.status === "found" ? "Disponível" : item.status === "partial" ? "Parcial" : "Faltando";
+
+      return `
+        <div class="magic-card ${color}">
+          <h3>${escapeHTML(item.name)}</h3>
+
+          <div class="magic-meta">
+            <div class="pill ${color}">${label}</div>
+            <div class="pill ${color}">Quero: ${item.wantedQuantity}</div>
+            <div class="pill ${color}">Vendedor: ${item.sellerQuantity}</div>
+          </div>
+
+          <div class="collection-box">
+            <div class="collection-title">Coleções / edições do vendedor</div>
+            ${formatCollections(item.collections)}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function importFile(inputId, textareaId){
+    const input = document.getElementById(inputId);
+    const textarea = document.getElementById(textareaId);
+    const file = input.files[0];
+
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = event => {
+      textarea.value = event.target.result;
+      setStatus(`Arquivo "${file.name}" importado com sucesso.`);
+    };
+
+    reader.onerror = () => setStatus("Erro ao importar arquivo.");
+
+    reader.readAsText(file, "UTF-8");
+  }
+
+  function exportCSV(){
+    if(!comparisonData.length){
+      setStatus("Faça uma comparação antes de exportar.");
+      return;
+    }
+
+    const rows = [
+      ["Status","Carta","Quantidade desejada","Quantidade vendedor","Coleções/Edições"]
+    ];
+
+    comparisonData.forEach(item => {
+      rows.push([
+        item.status === "found" ? "Disponível" : item.status === "partial" ? "Parcial" : "Faltando",
+        item.name,
+        item.wantedQuantity,
+        item.sellerQuantity,
+        item.collections.map(c => `${c.name}${c.quantity > 1 ? ` (${c.quantity}x)` : ""}`).join(" | ")
+      ]);
+    });
+
+    const csv = rows
+      .map(row => row.map(value => `"${String(value).replace(/"/g,'""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "comparacao-magic.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+
+    setStatus("CSV exportado.");
+  }
+
+  function copyMatches(){
+    const text = comparisonData
+      .filter(item => item.status === "found" || item.status === "partial")
+      .map(item => {
+        const collections = item.collections.map(c => c.name).join(" | ");
+        return `${item.sellerQuantity} ${item.name}${collections ? " - " + collections : ""}`;
+      })
+      .join("\n");
+
+    if(!text){
+      setStatus("Nenhuma carta disponível para copiar.");
+      return;
+    }
+
+    navigator.clipboard.writeText(text)
+      .then(() => setStatus("Cartas disponíveis copiadas."))
+      .catch(() => setStatus("Não foi possível copiar automaticamente."));
+  }
+
+  function clearAll(){
+    document.getElementById("wantedText").value = "";
+    document.getElementById("sellerText").value = "";
+    document.getElementById("wantedFile").value = "";
+    document.getElementById("sellerFile").value = "";
+    document.getElementById("searchInput").value = "";
+    document.getElementById("filterSelect").value = "available";
+
+    comparisonData = [];
+
+    updateStats(0,0);
+
+    document.getElementById("cardsContainer").innerHTML = `
+      <div class="empty">Nenhuma comparação feita ainda.</div>
     `;
 
-    return;
+    setStatus("Tudo limpo.");
   }
 
-  container.innerHTML = data.map(item => {
-
-    const color =
-      item.status === "found"
-        ? "green"
-        : item.status === "partial"
-          ? "yellow"
-          : "red";
-
-    const label =
-      item.status === "found"
-        ? "Disponível"
-        : item.status === "partial"
-          ? "Parcial"
-          : "Faltando";
-
-    return `
-      <div class="magic-card ${color}">
-
-        <h3>${escapeHTML(item.name)}</h3>
-
-        <div class="magic-meta">
-
-          <div class="pill ${color}">
-            ${label}
-          </div>
-
-          <div class="pill ${color}">
-            Quero: ${item.wantedQuantity}
-          </div>
-
-          <div class="pill ${color}">
-            Vendedor: ${item.sellerQuantity}
-          </div>
-
-        </div>
-
-        <div class="collection-box">
-
-          <div class="collection-title">
-            Coleções / Edições disponíveis
-          </div>
-
-          ${formatCollections(item.collections)}
-
-        </div>
-
-      </div>
-    `;
-  }).join("");
-}
-
-function showFoundOnly(){
-
-  document.getElementById("filterSelect").value = "found";
-
-  renderCards();
-}
-
-function showAllCards(){
-
-  document.getElementById("filterSelect").value = "all";
-
-  renderCards();
-}
-
-function importFile(inputId,textareaId){
-
-  const input = document.getElementById(inputId);
-
-  const textarea = document.getElementById(textareaId);
-
-  const file = input.files[0];
-
-  if(!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = e => {
-
-    textarea.value = e.target.result;
-
-    setStatus(
-      `Arquivo "${file.name}" importado com sucesso.`
-    );
-  };
-
-  reader.readAsText(file,"UTF-8");
-}
-
-function exportCSV(){
-
-  if(!comparisonData.length){
-
-    setStatus("Faça uma comparação antes.");
-
-    return;
+  function setStatus(message){
+    document.getElementById("status").textContent = message;
   }
 
-  const rows = [
-    [
-      "Status",
-      "Carta",
-      "Quantidade Desejada",
-      "Quantidade Vendedor",
-      "Colecoes"
-    ]
-  ];
-
-  comparisonData.forEach(item => {
-
-    rows.push([
-      item.status,
-      item.name,
-      item.wantedQuantity,
-      item.sellerQuantity,
-      item.collections
-        .map(c => `${c.name} (${c.quantity})`)
-        .join(" | ")
-    ]);
-  });
-
-  const csv = rows
-    .map(row =>
-      row.map(value =>
-        `"${String(value).replace(/"/g,'""')}"`
-      ).join(",")
-    )
-    .join("\n");
-
-  const blob = new Blob(
-    [csv],
-    {type:"text/csv;charset=utf-8;"}
-  );
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = "comparacao-magic.csv";
-
-  a.click();
-
-  URL.revokeObjectURL(url);
-
-  setStatus("CSV exportado.");
-}
-
-function copyMatches(){
-
-  const text = comparisonData
-    .filter(item =>
-      item.status === "found" ||
-      item.status === "partial"
-    )
-    .map(item =>
-      `${item.sellerQuantity} ${item.name}`
-    )
-    .join("\n");
-
-  navigator.clipboard.writeText(text);
-
-  setStatus("Cartas encontradas copiadas.");
-}
-
-function clearAll(){
-
-  document.getElementById("wantedText").value = "";
-  document.getElementById("sellerText").value = "";
-  document.getElementById("wantedFile").value = "";
-  document.getElementById("sellerFile").value = "";
-  document.getElementById("searchInput").value = "";
-
-  comparisonData = [];
-
-  updateStats(0,0);
-
-  document.getElementById("cardsContainer").innerHTML = `
-    <div class="empty">
-      Nenhuma comparação feita ainda.
-    </div>
-  `;
-
-  setStatus("Tudo limpo.");
-}
-
-function setStatus(message){
-  document.getElementById("status").textContent = message;
-}
-
-function escapeHTML(text){
-
-  return String(text)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-}
-
+  function escapeHTML(text){
+    return String(text || "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
 </script>
 
 </body>
