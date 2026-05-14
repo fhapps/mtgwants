@@ -45,14 +45,14 @@
 
     header p {
       margin: 12px auto 0;
-      max-width: 820px;
+      max-width: 850px;
       color: var(--muted);
       font-size: 16px;
       line-height: 1.6;
     }
 
     main {
-      width: min(1180px, calc(100% - 32px));
+      width: min(1220px, calc(100% - 32px));
       margin: 0 auto 60px;
     }
 
@@ -217,7 +217,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 780px;
+      min-width: 980px;
     }
 
     th,
@@ -226,6 +226,7 @@
       border-bottom: 1px solid var(--border);
       text-align: left;
       font-size: 14px;
+      vertical-align: top;
     }
 
     th {
@@ -305,6 +306,11 @@
       border-radius: 8px;
     }
 
+    .collection-list {
+      color: #374151;
+      line-height: 1.5;
+    }
+
     @media (max-width: 850px) {
       .grid,
       .stats {
@@ -334,16 +340,16 @@
   <header>
     <h1>Comparador de Cartas Magic</h1>
     <p>
-      Compare sua lista de cartas com a coleção de outra pessoa usando texto, TXT ou CSV.
-      Funciona no GitHub Pages sem depender de URL externa.
+      Compare sua lista com a coleção do vendedor usando texto, TXT ou CSV.
+      Quando o CSV tiver coluna de coleção/edição, o sistema mostra qual coleção o vendedor possui.
     </p>
   </header>
 
   <main>
     <section class="panel">
       <div class="alert">
-        A comparação aceita listas no formato <strong>Deck</strong>, texto simples, TXT e CSV.
-        Exemplo aceito: <strong>1 Sol Ring</strong>, <strong>2 Counterspell</strong>, <strong>Deck</strong> no topo etc.
+        Para mostrar a coleção, o CSV do vendedor precisa ter uma coluna como:
+        <strong>Coleção</strong>, <strong>Edicao</strong>, <strong>Edição</strong>, <strong>Set</strong>, <strong>Edition</strong> ou <strong>Collection</strong>.
       </div>
 
       <div class="grid">
@@ -365,26 +371,26 @@ Deck
 
         <div>
           <label>Lista / coleção do vendedor</label>
-          <textarea id="sellerText" placeholder="Cole aqui a lista do vendedor. Exemplo:
-Deck
-3 Desolate Mire
-1 Arcane Signet
-2 Counterspell"></textarea>
+          <textarea id="sellerText" placeholder="Cole aqui a lista do vendedor. Exemplo CSV:
+Quantidade,Nome,Coleção
+2,Desolate Mire,Commander
+1,Arcane Signet,Commander Legends
+1,Ghostly Prison,Ravnica Remastered"></textarea>
 
           <div class="file-box">
             <label>Importar coleção do vendedor em TXT, CSV ou HTML</label>
             <input type="file" id="sellerFile" accept=".txt,.csv,.html,.htm" onchange="importFile('sellerFile', 'sellerText')" />
-            <p class="hint">Também aceita CSV exportado de planilha ou sistema.</p>
+            <p class="hint">Se o CSV tiver coleção/edição, ela aparecerá no resultado.</p>
           </div>
         </div>
       </div>
 
       <div class="format-box">
         <strong>Formatos aceitos:</strong><br>
-        Texto: <code>Deck</code> + linhas como <code>1 Sol Ring</code><br>
-        TXT: mesmo formato do texto acima<br>
-        CSV: aceita colunas como <code>Quantidade,Nome</code>, <code>Nome,Quantidade</code>,
-        <code>Count,Name</code>, <code>Qty,Card</code> ou apenas uma coluna com <code>1 Sol Ring</code>.
+        Texto/TXT: <code>Deck</code> + linhas como <code>1 Sol Ring</code><br>
+        CSV simples: <code>Quantidade,Nome</code><br>
+        CSV com coleção: <code>Quantidade,Nome,Coleção</code>, <code>Qtd,Carta,Edição</code>,
+        <code>Count,Name,Set</code>, <code>Qty,Card,Edition</code>.
       </div>
 
       <div class="actions">
@@ -424,7 +430,7 @@ Deck
       <h2 class="mini-title">Resultado da comparação</h2>
 
       <div class="toolbar">
-        <input id="searchInput" oninput="renderTable()" placeholder="Buscar carta..." />
+        <input id="searchInput" oninput="renderTable()" placeholder="Buscar carta ou coleção..." />
 
         <select id="filterSelect" onchange="renderTable()">
           <option value="matches">Somente encontradas completas</option>
@@ -442,12 +448,13 @@ Deck
               <th>Carta</th>
               <th>Qtd. desejada</th>
               <th>Qtd. vendedor</th>
+              <th>Coleção / edição do vendedor</th>
               <th>Observação</th>
             </tr>
           </thead>
           <tbody id="resultBody">
             <tr>
-              <td colspan="5">Nenhuma comparação feita ainda.</td>
+              <td colspan="6">Nenhuma comparação feita ainda.</td>
             </tr>
           </tbody>
         </table>
@@ -521,64 +528,6 @@ Deck
       return first.includes(",") || first.includes(";");
     }
 
-    function parseCSV(text) {
-      const lines = String(text || "")
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(Boolean);
-
-      const map = new Map();
-
-      if (!lines.length) return map;
-
-      const headerCells = parseCSVLine(lines[0]).map(cell => normalizeHeader(cell));
-      const hasHeader = headerCells.some(cell => [
-        "nome", "name", "card", "carta", "quantidade", "qtd", "qty", "count", "quantity"
-      ].includes(cell));
-
-      let nameIndex = -1;
-      let qtyIndex = -1;
-      let startIndex = 0;
-
-      if (hasHeader) {
-        startIndex = 1;
-
-        nameIndex = headerCells.findIndex(cell => ["nome", "name", "card", "carta", "cardname", "card_name"].includes(cell));
-        qtyIndex = headerCells.findIndex(cell => ["quantidade", "qtd", "qty", "count", "quantity"].includes(cell));
-      }
-
-      for (let i = startIndex; i < lines.length; i++) {
-        const cells = parseCSVLine(lines[i]).map(cell => cell.replace(/^"|"$/g, "").trim());
-
-        let quantity = 1;
-        let name = "";
-
-        if (nameIndex >= 0) {
-          name = cells[nameIndex] || "";
-          quantity = qtyIndex >= 0 ? Number(String(cells[qtyIndex]).replace(",", ".")) || 1 : 1;
-        } else {
-          const first = cells[0] || "";
-          const second = cells[1] || "";
-
-          if (isNumeric(first) && second) {
-            quantity = Number(first);
-            name = second;
-          } else if (isNumeric(second) && first) {
-            quantity = Number(second);
-            name = first;
-          } else {
-            const parsed = parseDeckLine(cells.join(" "));
-            quantity = parsed.quantity;
-            name = parsed.name;
-          }
-        }
-
-        addCardToMap(map, name, quantity);
-      }
-
-      return map;
-    }
-
     function normalizeHeader(text) {
       return String(text)
         .toLowerCase()
@@ -590,6 +539,87 @@ Deck
 
     function isNumeric(value) {
       return /^-?\d+([,.]\d+)?$/.test(String(value).trim());
+    }
+
+    function findHeaderIndex(headers, options) {
+      return headers.findIndex(header => options.includes(header));
+    }
+
+    function parseCSV(text) {
+      const lines = String(text || "")
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+      const map = new Map();
+
+      if (!lines.length) return map;
+
+      const headerCells = parseCSVLine(lines[0]).map(cell => normalizeHeader(cell));
+
+      const hasHeader = headerCells.some(cell => [
+        "nome", "name", "card", "carta", "cardname", "card_name",
+        "quantidade", "qtd", "qty", "count", "quantity",
+        "colecao", "collection", "edicao", "edition", "set", "expansao", "expansion"
+      ].includes(cell));
+
+      let nameIndex = -1;
+      let qtyIndex = -1;
+      let collectionIndex = -1;
+      let startIndex = 0;
+
+      if (hasHeader) {
+        startIndex = 1;
+
+        nameIndex = findHeaderIndex(headerCells, [
+          "nome", "name", "card", "carta", "cardname", "card_name"
+        ]);
+
+        qtyIndex = findHeaderIndex(headerCells, [
+          "quantidade", "qtd", "qty", "count", "quantity"
+        ]);
+
+        collectionIndex = findHeaderIndex(headerCells, [
+          "colecao", "collection", "edicao", "edition", "set", "expansao", "expansion", "serie", "series"
+        ]);
+      }
+
+      for (let i = startIndex; i < lines.length; i++) {
+        const cells = parseCSVLine(lines[i]).map(cell => cell.replace(/^"|"$/g, "").trim());
+
+        let quantity = 1;
+        let name = "";
+        let collection = "";
+
+        if (nameIndex >= 0) {
+          name = cells[nameIndex] || "";
+          quantity = qtyIndex >= 0 ? Number(String(cells[qtyIndex]).replace(",", ".")) || 1 : 1;
+          collection = collectionIndex >= 0 ? cells[collectionIndex] || "" : "";
+        } else {
+          const first = cells[0] || "";
+          const second = cells[1] || "";
+          const third = cells[2] || "";
+
+          if (isNumeric(first) && second) {
+            quantity = Number(String(first).replace(",", "."));
+            name = second;
+            collection = third || "";
+          } else if (isNumeric(second) && first) {
+            quantity = Number(String(second).replace(",", "."));
+            name = first;
+            collection = third || "";
+          } else {
+            const parsed = parseDeckLine(cells.join(" "));
+            quantity = parsed.quantity;
+            name = parsed.name;
+            collection = "";
+          }
+        }
+
+        addCardToMap(map, name, quantity, collection);
+      }
+
+      return map;
     }
 
     function parseDeckLine(line) {
@@ -612,11 +642,11 @@ Deck
 
         if (match) {
           if (isNumeric(match[1])) {
-            quantity = Number(match[1]);
+            quantity = Number(String(match[1]).replace(",", "."));
             clean = match[2];
           } else {
             clean = match[1];
-            quantity = Number(match[2]);
+            quantity = Number(String(match[2]).replace(",", "."));
           }
 
           break;
@@ -664,12 +694,17 @@ Deck
         "nome",
         "name",
         "carta",
+        "colecao",
+        "coleção",
+        "collection",
+        "edicao",
+        "edição",
+        "edition",
+        "set",
         "ligamagic",
         "minha conta",
         "entrar",
         "sair",
-        "coleção",
-        "colecao",
         "comprar",
         "vender",
         "preço",
@@ -679,8 +714,6 @@ Deck
         "raridade",
         "condição",
         "condicao",
-        "edição",
-        "edicao",
         "home",
         "busca",
         "buscar",
@@ -695,8 +728,9 @@ Deck
       return ignored.includes(lower);
     }
 
-    function addCardToMap(map, name, quantity) {
+    function addCardToMap(map, name, quantity, collection = "") {
       const cleanName = String(name || "").trim();
+      const cleanCollection = String(collection || "").trim();
 
       if (isBadLine(cleanName)) return;
 
@@ -709,10 +743,25 @@ Deck
       if (!map.has(key)) {
         map.set(key, {
           name: cleanName,
-          quantity: safeQuantity
+          quantity: safeQuantity,
+          collections: []
         });
       } else {
         map.get(key).quantity += safeQuantity;
+      }
+
+      if (cleanCollection) {
+        const card = map.get(key);
+        const existingCollection = card.collections.find(item => normalizeCardName(item.name) === normalizeCardName(cleanCollection));
+
+        if (existingCollection) {
+          existingCollection.quantity += safeQuantity;
+        } else {
+          card.collections.push({
+            name: cleanCollection,
+            quantity: safeQuantity
+          });
+        }
       }
     }
 
@@ -739,7 +788,7 @@ Deck
         .filter(line => !isBadLine(line))
         .forEach(line => {
           const parsed = parseDeckLine(line);
-          addCardToMap(map, parsed.name, parsed.quantity);
+          addCardToMap(map, parsed.name, parsed.quantity, "");
         });
 
       return map;
@@ -762,6 +811,7 @@ Deck
       wanted.forEach((wantedCard, key) => {
         const sellerCard = seller.get(key);
         const sellerQuantity = sellerCard ? sellerCard.quantity : 0;
+        const sellerCollections = sellerCard ? sellerCard.collections : [];
 
         let status = "missing";
 
@@ -775,6 +825,7 @@ Deck
           name: wantedCard.name,
           wantedQuantity: wantedCard.quantity,
           sellerQuantity,
+          sellerCollections,
           status
         });
       });
@@ -791,8 +842,9 @@ Deck
       const found = comparisonData.filter(item => item.status === "found").length;
       const partial = comparisonData.filter(item => item.status === "partial").length;
       const missing = comparisonData.filter(item => item.status === "missing").length;
+      const withCollection = comparisonData.filter(item => item.sellerCollections.length > 0).length;
 
-      setStatus(`Comparação concluída. ${found} completa(s), ${partial} parcial(is) e ${missing} faltante(s).`);
+      setStatus(`Comparação concluída. ${found} completa(s), ${partial} parcial(is), ${missing} faltante(s). ${withCollection} carta(s) com coleção identificada.`);
     }
 
     function updateStats(wantedCount, sellerCount) {
@@ -803,6 +855,28 @@ Deck
       document.getElementById("sellerCount").textContent = sellerCount;
       document.getElementById("matchCount").textContent = matches;
       document.getElementById("missingCount").textContent = missing;
+    }
+
+    function formatCollections(collections) {
+      if (!collections || !collections.length) {
+        return "-";
+      }
+
+      return collections
+        .map(item => `${item.name}${item.quantity > 1 ? ` (${item.quantity}x)` : ""}`)
+        .join(" | ");
+    }
+
+    function formatCollectionsHTML(collections) {
+      if (!collections || !collections.length) {
+        return `<span class="collection-list">-</span>`;
+      }
+
+      return `<div class="collection-list">${
+        collections
+          .map(item => `${escapeHTML(item.name)}${item.quantity > 1 ? ` (${item.quantity}x)` : ""}`)
+          .join("<br>")
+      }</div>`;
     }
 
     function renderTable() {
@@ -825,13 +899,17 @@ Deck
       }
 
       if (search) {
-        data = data.filter(item => normalizeCardName(item.name).includes(search));
+        data = data.filter(item => {
+          const cardMatch = normalizeCardName(item.name).includes(search);
+          const collectionMatch = normalizeCardName(formatCollections(item.sellerCollections)).includes(search);
+          return cardMatch || collectionMatch;
+        });
       }
 
       if (!data.length) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="5">Nenhum resultado encontrado.</td>
+            <td colspan="6">Nenhum resultado encontrado.</td>
           </tr>
         `;
         return;
@@ -844,6 +922,7 @@ Deck
             <td><strong>${escapeHTML(item.name)}</strong></td>
             <td>${item.wantedQuantity}</td>
             <td>${item.sellerQuantity}</td>
+            <td>${formatCollectionsHTML(item.sellerCollections)}</td>
             <td>${getNote(item)}</td>
           </tr>
         `;
@@ -902,12 +981,13 @@ Deck
       }
 
       const rows = [
-        ["Status", "Carta", "Quantidade desejada", "Quantidade vendedor", "Observação"],
+        ["Status", "Carta", "Quantidade desejada", "Quantidade vendedor", "Coleção/Edição vendedor", "Observação"],
         ...comparisonData.map(item => [
           item.status === "found" ? "Encontrada" : item.status === "partial" ? "Parcial" : "Faltando",
           item.name,
           item.wantedQuantity,
           item.sellerQuantity,
+          formatCollections(item.sellerCollections),
           getNote(item)
         ])
       ];
@@ -916,14 +996,17 @@ Deck
         .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
         .join("\n");
 
-      downloadFile(csv, "comparacao-cartas-magic.csv", "text/csv;charset=utf-8;");
-      setStatus("CSV exportado com sucesso.");
+      downloadFile(csv, "comparacao-cartas-magic-com-colecao.csv", "text/csv;charset=utf-8;");
+      setStatus("CSV exportado com coleção/edição do vendedor.");
     }
 
     function copyMatches() {
       const matches = comparisonData
         .filter(item => item.status === "found" || item.status === "partial")
-        .map(item => `${item.sellerQuantity} ${item.name}`)
+        .map(item => {
+          const collections = formatCollections(item.sellerCollections);
+          return `${item.sellerQuantity} ${item.name}${collections !== "-" ? ` | ${collections}` : ""}`;
+        })
         .join("\n");
 
       if (!matches) {
@@ -931,7 +1014,7 @@ Deck
         return;
       }
 
-      copyText(matches, "Cartas encontradas copiadas.");
+      copyText(matches, "Cartas encontradas copiadas com coleção/edição.");
     }
 
     function copyMissing() {
@@ -979,70 +1062,22 @@ Deck
 1 Desolate Mire
 1 Choked Estuary
 1 Glacial Fortress
-1 Shineshadow Snarl
-1 Fetid Heath
-1 Bojuka Bog
-1 Contaminated Landscape
-1 Arcane Sanctum
-1 Skycloud Expanse
-1 Restoration Magic
-1 Sigil of Sleep
-1 Sejiri Shelter
-1 Baral, Chief of Compliance
-1 Exsanguinate
-1 Baleful Strix
-1 Long River's Pull
-1 Mai, Scornful Striker
-1 Papalymo Totolymo
-1 Narset's Reversal
 1 Arcane Signet
-1 Talisman of Dominance
-1 Talisman of Hierarchy
-1 Talisman of Progress
-1 Steel of the Godhead
-1 Absorb
-1 Alisaie Leveilleur
-1 Archmage's Charm
-1 Bender's Waterskin
-1 As Foretold
-1 Disallow
-1 Unwind
-1 Survival Cache
-1 Perplex
-1 Eye of Nidhogg
-1 G'raha Tia, Scion Reborn
 1 Ghostly Prison
 1 Propaganda
-1 Timely Ward
 1 Windfall
 1 Vindicate
-1 Alphinaud Leveilleur
-1 Archmage Emeritus
-1 Chameleon, Master of Disguise
-1 Circle of Power
-1 Dancer's Chakrams
-1 Crushing Disappointment
-1 Syphon Mind
-1 Helm of the Ghastlord
-1 Emet-Selch of the Third Seat
-1 Y'shtola, Night's Blessed
-1 Fandaniel, Telophoroi Ascian
-1 Cleansing Nova
-1 Starfall Invocation
 1 Sublime Epiphany`;
 
-      document.getElementById("sellerText").value = `Quantidade,Nome
-2,Desolate Mire
-1,Arcane Sanctum
-1,Arcane Signet
-1,Talisman of Dominance
-1,Talisman of Progress
-1,Ghostly Prison
-1,Propaganda
-1,Windfall
-1,Vindicate
-1,Sublime Epiphany
-1,Sol Ring`;
+      document.getElementById("sellerText").value = `Quantidade,Nome,Coleção
+2,Desolate Mire,Commander
+1,Arcane Signet,Commander Legends
+1,Ghostly Prison,Ravnica Remastered
+1,Propaganda,Commander Masters
+1,Windfall,Commander 2019
+1,Vindicate,Apocalypse
+1,Sublime Epiphany,Core Set 2021
+1,Sol Ring,Commander Legends`;
 
       compareLists();
     }
@@ -1061,7 +1096,7 @@ Deck
 
       document.getElementById("resultBody").innerHTML = `
         <tr>
-          <td colspan="5">Nenhuma comparação feita ainda.</td>
+          <td colspan="6">Nenhuma comparação feita ainda.</td>
         </tr>
       `;
 
